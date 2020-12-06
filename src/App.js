@@ -1,6 +1,13 @@
 import React, { Component } from 'react'
 import axios from "axios";
+import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Button,Container,Row,Col,Card } from 'react-bootstrap';
+
 export default class App extends Component {
+
+
+  
 
     state = {
       number : " ",
@@ -9,7 +16,10 @@ export default class App extends Component {
         toCurrency : "",
         USD : " ",
         convertedAmount : " ",
-        country : []
+        name:" ",
+        timestamp:" ",
+        date : " ",
+        formatedTime : " "
 
 
     }
@@ -19,23 +29,24 @@ export default class App extends Component {
 
   
 
-     getCountries = (toCurrency) => {
-      try {
-          const response =  axios.get(`https://restcountries.eu/rest/v2/currency/${toCurrency}`);
-          
-      // return response.data.map(country => country.name);
-      } catch (error) {
-          throw new Error(`Unable to get countries that use ${toCurrency}`);
-      }
-      
-  }
-
+   
     
     fetchExchangeRate = () => {
         axios.get('http://data.fixer.io/api/latest?access_key=f68b13604ac8e570a00f7d8fe7f25e1b&format=1')
         .then((response)=>{
-            const rates = response.data.rates;
-            this.setState({rates})
+          const {rates,date,timestamp} = response.data
+
+            var unix_timestamp = this.state.timestamp
+            var x = new Date(unix_timestamp * 1000);
+            var hours = x.getHours();
+            var minutes = "0" + x.getMinutes();
+            var seconds = "0" + x.getSeconds();
+            var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            this.setState({rates,date,timestamp,formattedTime})
+
+            
+            console.log(this.state.formattedTime)
+
         })
     }
 
@@ -57,8 +68,6 @@ export default class App extends Component {
     toCurrencyFunc = (e) => {
       const toCurrency = e.target.value
       this.setState({toCurrency})
-      this.getCountries(toCurrency)
-
     }
 
     Convert = () => {
@@ -74,46 +83,83 @@ export default class App extends Component {
     render() {
       const object = this.state.rates
         return (
-          <div>
+          <div className="App">
 
-            <input onChange={this.change} type="Number">
-            
-            </input>
-            From:
-            <select onChange={this.fromCurrencyFunc} >
+<Container>
+
+<Card>
+  <Card.Header>
+    <h1>CURRENCY CONVERTER</h1>
+  </Card.Header>
+  <Card.Body>
+  <Row>
+    <Col>
+    Amount : {this.state.number}
+
+    </Col>
+    <Col>
+    From currency : {this.state.fromCurrency}
+    
+    </Col>
+
+    <Col>
+    To currency : {this.state.toCurrency}
+  
+    </Col>
+  </Row>
+  <Row>
+    <Col> <input onChange={this.change} type="Number"/> </Col>
+    <Col>           <select onChange={this.fromCurrencyFunc} >
               {Object.entries(object).map(([key,value],i) => 
     <option selected={i === 0} key={i} value={key} >{key}</option>
 )
 }
             </select>
-
-To:
-           
-            <select onChange={this.toCurrencyFunc}>
+            </Col>
+    <Col>
+    <select onChange={this.toCurrencyFunc}>
               {Object.entries(object).map(([key,value],i) => 
     <option key={i} value={key} >{key}</option>
 )
 }
             </select>
-            <p> from currency : {this.state.fromCurrency}
-            </p>
-            <p> to currency : {this.state.toCurrency}
-            </p>
-            <p>
-              Amount : {this.state.number}
-            </p>
-            <p>
-             Converted Ammount : {this.state.convertedAmount}
-            </p>
-            <button onClick={this.Convert}>
-              Convert
-            </button>
-       
+    </Col>
+  </Row>
+ 
+  <Row>
+    <Col>
+    
+    </Col>
+    <Col>
+    <h1>
+    {this.state.number}  {this.state.fromCurrency} = <b>{this.state.convertedAmount}</b> {this.state.toCurrency}
+    </h1>
+    Converted Amount : {this.state.convertedAmount} {this.state.toCurrency}
 
-      
-   
+    </Col>
+    <Col>
 
-            
+    </Col>
+  </Row>
+<Col>
+
+</Col>
+<Col>
+<Button onClick={this.Convert} variant="warning" size="lg" >Convert</Button>
+
+</Col>
+<Col>
+Last update  {this.state.date} {this.state.formattedTime}
+</Col>
+  
+
+  </Card.Body>
+</Card>
+  
+
+  
+</Container>
+
           </div>
         )
     }
